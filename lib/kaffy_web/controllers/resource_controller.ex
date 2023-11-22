@@ -220,13 +220,14 @@ defmodule KaffyWeb.ResourceController do
     end
   end
 
-  def new(conn, %{"context" => context, "resource" => resource}) do
+  def new(conn, %{"context" => context, "resource" => resource} = params) do
     my_resource = Kaffy.Utils.get_resource(conn, context, resource)
     resource_name = Kaffy.ResourceAdmin.singular_name(my_resource)
 
     with {:permitted, true} <- {:permitted, can_proceed?(my_resource, conn)},
          {:enabled, true} <- {:enabled, is_enabled?(my_resource, :new)} do
-      changeset = Kaffy.ResourceAdmin.create_changeset(my_resource, %{}) |> Map.put(:errors, [])
+      params = params |> Map.delete("resource") |> Map.delete("context")
+      changeset = Kaffy.ResourceAdmin.create_changeset(my_resource, params) |> Map.put(:errors, [])
 
       render(conn, "new.html",
         layout: {KaffyWeb.LayoutView, "app.html"},
